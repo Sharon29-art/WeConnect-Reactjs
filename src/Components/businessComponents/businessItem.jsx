@@ -1,6 +1,7 @@
 import React from 'react';
 import { Image } from 'cloudinary-react';
 import { cloudName } from '../../utils/Config';
+import StarRatingDisplay from '../common/StarRatingDisplay';
 /**
  * presentations component to display business items
  * @param {*} business - single business details
@@ -18,6 +19,7 @@ const BusinessItem = ({ business, onView, index }) => {
 						</div>
 						<div className="col-sm-6 col-xs-12">
 							<h5 className="card-title text-capitalize">{business.name}</h5>
+							<StarRatingDisplay rating={business.avg_rating} reviewCount={business.review_count} />
 							<p className="card-text">{business.description}</p>
 							<p>Location: <span className="text-info">{business.location}</span><br /></p>
 							<p>Category: <span className="text-info">{business.category}</span><br /></p>

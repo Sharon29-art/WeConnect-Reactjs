@@ -4,6 +4,9 @@ import {
 	LOAD_BUSINESS_PROFILE,
 	LOAD_BUSINESS_PROFILE_ERROR,
 	REVIEW_INPUT_CHANGE,
+	RESPONSE_INPUT_CHANGE,     // NEW
+	RESPONSE_SUCCESS,          // NEW
+	RESPONSE_FAILURE,          // NEW
 } from '../actions/actiontypes';
 
 const INITIAL_STATE = {
@@ -17,6 +20,11 @@ const INITIAL_STATE = {
 	error: [],
 	title: '',
 	review: '',
+	rating: 0,					// NEW
+	avgRating: null,			// NEW 
+	reviewCount: 0,				// NEW
+	responseBody: '',          // NEW - text field for the response form
+	trend: [],				  // NEW
 	loading: false,
 };
 export default function NewBusinessReducer(state = INITIAL_STATE, action) {
@@ -41,6 +49,10 @@ export default function NewBusinessReducer(state = INITIAL_STATE, action) {
 			...state,
 			loading: false,
 			reviews: action.reviews,
+			avgRating: action.reviews.avg_rating,
+			reviewCount: action.reviews.review_count,
+			ratingDistribution: action.reviews.rating_distribution,
+			trend: action.reviews.trend,
 		};
 	case LOAD_BUSINESS_PROFILE_ERROR:
 		return {
@@ -52,6 +64,15 @@ export default function NewBusinessReducer(state = INITIAL_STATE, action) {
 		return {
 			...state,
 			[action.payload.prop]: action.payload.value,
+		};
+		case RESPONSE_INPUT_CHANGE:                          // NEW
+		return { ...state, [action.payload.prop]: action.payload.value,
+		};
+	case RESPONSE_SUCCESS:                                // NEW
+		return { ...state, responseBody: '',
+		};  // clear the form on success
+	case RESPONSE_FAILURE:                                // NEW
+		return { ...state, error: action.errors,
 		};
 	default:
 		return state;

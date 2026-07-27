@@ -1,6 +1,7 @@
 import {
 	LOAD_BUSINESSES_SUCCESS,
 	LOAD_BUSINESS,
+	LOAD_BUSINESS_FILTERS_SUCCESS,
 } from '../actions/actiontypes';
 // the initial state to be set for in businesses store
 const initial_state = {
@@ -10,6 +11,8 @@ const initial_state = {
 	total_pages: 0,
 	total_results: 0,
 	loading: false,
+	categories: [],
+	locations: [],
 };
 
 export default function BusinessReducer(state = initial_state, action) {
@@ -28,6 +31,12 @@ export default function BusinessReducer(state = initial_state, action) {
 		return {
 			...state,
 			loading: true,
+		};
+	case LOAD_BUSINESS_FILTERS_SUCCESS:
+		return {
+			...state,
+			categories: action.filters.categories,
+			locations: action.filters.locations,
 		};
 	default:
 		return state;

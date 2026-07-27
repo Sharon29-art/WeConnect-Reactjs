@@ -3,6 +3,7 @@ import { PropTypes } from 'prop-types';
 import InputField from '../inputs/InputField';
 import TextArea from '../inputs/textArea';
 import Button from '../inputs/Button';
+import StarRatingInput from '../inputs/StarRatingInput';
 
 const ReviewForm = ({
 	handleChange,
@@ -11,6 +12,7 @@ const ReviewForm = ({
 	errors,
 	title,
 	review,
+	rating,
 }) => {
 	return (
 		<div>
@@ -37,6 +39,12 @@ const ReviewForm = ({
 												value={title}
 												error={errors.title}
 											/>
+											<label>Rating</label>
+											<StarRatingInput
+												value={rating}
+												onChange={(n) => handleChange({ target: { name: 'rating', value: n } })}
+											/>
+											{errors.rating && <div className="text-danger">{errors.rating}</div>}
 											<TextArea
 												name="review"
 												label="Description"
@@ -69,12 +77,14 @@ ReviewForm.propTypes = {
 	handleSubmit: PropTypes.func.isRequired,
 	title: PropTypes.string,
 	review: PropTypes.string,
+	rating: PropTypes.number,
 	loading: PropTypes.bool,
 	errors: PropTypes.array,
 };
 ReviewForm.defaultProps = {
 	title: '',
 	review: '',
+	rating: 0,
 	loading: false,
 	errors: [],
 };

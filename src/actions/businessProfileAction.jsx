@@ -5,6 +5,9 @@ import {
 	LOAD_BUSINESS_PROFILE,
 	LOAD_BUSINESS_PROFILE_ERROR,
 	REVIEW_INPUT_CHANGE,
+	RESPONSE_INPUT_CHANGE,      // NEW
+	RESPONSE_SUCCESS,            // NEW
+	RESPONSE_FAILURE,            // NEW
 } from './actiontypes';
 import { notify } from '../utils/notify';
 import { baseURL } from '../utils/Config';
@@ -128,7 +131,7 @@ export function viewUserBusiness(id) {
  * @param {*} id - id of business to review.
  */
 export function addReview({
-	review, title, id,
+	review, title, rating, id,
 }) {
 	return function disp(dispatch) {
 		const url = `businesses/${id}/reviews`;
@@ -138,6 +141,7 @@ export function addReview({
 			data: {
 				review,
 				title,
+				rating,
 			},
 			baseURL,
 			responseType: 'json',
@@ -153,6 +157,137 @@ export function addReview({
 		}).catch((error) => {
 			if (error.response !== undefined) {
 				notify('error', 'Error', error.response.data.Error);
+			}
+		});
+	};
+}
+/**
+ * this action updates response form fields (e.g. the reply text box)
+ * @param {*} prop - the field to update in store
+ * @param {*} value - the value of the field
+ */
+export function responseInputChange({ prop, value }) {
+	return {
+		type: RESPONSE_INPUT_CHANGE,
+		payload: { prop, value },
+	};
+}
+
+/**
+ * dispatched when a response action succeeds (create or update)
+ * @param {*} response - the response details returned from the backend
+ */
+export function responseSuccess(response) {
+	return {
+		type: RESPONSE_SUCCESS,
+		response,
+	};
+}
+
+/**
+ * dispatched when a response action fails
+ * @param {*} errors - errors from the back end
+ */
+export function responseFailure(errors) {
+	return {
+		type: RESPONSE_FAILURE,
+		errors,
+	};
+}
+
+/**
+ * business owner replies to a review
+ * @param {*} body - the response text
+ * @param {*} reviewId - the review being responded to
+ * @param {*} businessId - the business, so we can reload reviews after
+ */
+export function addResponse({ body, reviewId, businessId }) {
+	return function disp(dispatch) {
+		const url = `businesses/reviews/${reviewId}/response`;
+		axios({
+			method: 'post',
+			url,
+			data: { body },
+			baseURL,
+			responseType: 'json',
+			headers: {
+				'Content-Type': 'application/json',
+				'access-token': Auth.getToken(),
+			},
+		}).then((response) => {
+			if (response.status >= 200 && response.status < 300) {
+				dispatch(responseSuccess(response.data));
+				dispatch(loadBusinessReviews(businessId));
+				notify('success', 'Success', 'Response posted');
+			}
+		}).catch((error) => {
+			if (error.response !== undefined) {
+				dispatch(responseFailure(error.response.data.Errors || error.response.data.Error));
+				notify('error', 'Error', 'Could not post response');
+			}
+		});
+	};
+}
+
+/**
+ * business owner edits their existing response
+ * @param {*} body - the updated response text
+ * @param {*} reviewId - the review whose response is being edited
+ * @param {*} businessId - the business, so we can reload reviews after
+ */
+export function updateResponse({ body, reviewId, businessId }) {
+	return function disp(dispatch) {
+		const url = `businesses/reviews/${reviewId}/response`;
+		axios({
+			method: 'put',
+			url,
+			data: { body },
+			baseURL,
+			responseType: 'json',
+			headers: {
+				'Content-Type': 'application/json',
+				'access-token': Auth.getToken(),
+			},
+		}).then((response) => {
+			if (response.status >= 200 && response.status < 300) {
+				dispatch(responseSuccess(response.data));
+				dispatch(loadBusinessReviews(businessId));
+				notify('success', 'Success', 'Response updated');
+			}
+		}).catch((error) => {
+			if (error.response !== undefined) {
+				dispatch(responseFailure(error.response.data.Errors || error.response.data.Error));
+				notify('error', 'Error', 'Could not update response');
+			}
+		});
+	};
+}
+
+/**
+ * business owner deletes their response
+ * @param {*} reviewId - the review whose response is being deleted
+ * @param {*} businessId - the business, so we can reload reviews after
+ */
+export function deleteResponse({ reviewId, businessId }) {
+	return function disp(dispatch) {
+		const url = `businesses/reviews/${reviewId}/response`;
+		axios({
+			method: 'delete',
+			url,
+			baseURL,
+			responseType: 'json',
+			headers: {
+				'Content-Type': 'application/json',
+				'access-token': Auth.getToken(),
+			},
+		}).then((response) => {
+			if (response.status >= 200 && response.status < 300) {
+				dispatch(loadBusinessReviews(businessId));
+				notify('success', 'Success', 'Response deleted');
+			}
+		}).catch((error) => {
+			if (error.response !== undefined) {
+				notify('error', 'Error', 'Could not delete response');
 			}
 		});
 	};

@@ -8,12 +8,15 @@ import NavBar from '../common/NavBar';
 import ReviewForm from '../forms/reviewsForm';
 import Item from '../businessComponents/reviewItems';
 import * as BusinessProfileActions from '../../actions/businessProfileAction';
+import * as loginActions from '../../actions/loginActions';
+
 
 class BusinessProfile extends React.Component {
 	constructor(props) {
 		super(props);
 		this.handleChange = this.handleChange.bind(this);
 		this.handleSubmit = this.handleSubmit.bind(this);
+		this.handleResponseChange = this.handleResponseChange.bind(this);
 		this.Back = this.Back.bind(this);
 	}
 
@@ -42,6 +45,16 @@ class BusinessProfile extends React.Component {
 			prop: e.target.name, value: e.target.value,
 		});
 	}
+	/**
+	 * NEW
+	 * handles typing in the reply/edit-response textarea
+	 * @param {*} e event
+	 */
+	handleResponseChange(e) {
+		this.props.actions.responseInputChange({
+			prop: e.target.name, value: e.target.value,
+		});
+	}
 
 	/**
 	 * handles form submit.
@@ -50,8 +63,8 @@ class BusinessProfile extends React.Component {
 	 */
 	handleSubmit(e) {
 		e.preventDefault();
-		const { review, title, id } = this.props.businessProfile;
-		this.props.actions.addReview({ review, title, id });
+		const { review, title, rating, id } = this.props.businessProfile;
+		this.props.actions.addReview({ review, title, rating, id });
 		this.props.actions.loadBusinessReviews(id);
 		document.getElementById('revieWModal').click();
 	}
@@ -59,6 +72,11 @@ class BusinessProfile extends React.Component {
 	render() {
 		const props = this.props;
 		const business = props.businessProfile;
+		// NEW - is the logged-in user the owner of this business?
+		const isOwner = props.userLogin.isLoggedIn
+			&& props.currentUser
+			&& business.id
+			&& props.currentUser.id === business.user_id;
 		const Loading = (
 			<div className="container bsprofile">
 				<br />
@@ -77,7 +95,7 @@ class BusinessProfile extends React.Component {
 					loggedIn={props.userLogin.isLoggedIn}
 					user={props.currentUser}
 					location={props.location}
-					actions={props.actions}
+					actions={props.loginAction}
 				/>
 				<div className="jumbotron" />
 				{ props.businessProfile.loading ? Loading
@@ -119,13 +137,33 @@ class BusinessProfile extends React.Component {
 
 										</div>
 										<br /><br />
+										{isOwner && (
+											<a href={`/business/dashboard/${business.id}`} className="btn btn-outline-primary float-right mb-2">
+												View Dashboard
+											</a>
+										)}
 
 										{
 											(business.error.message !== undefined)
 												? <div className="alert text-center col-md-8 offset-md-2 alert-info">{business.error.message}</div>
 												:											business.reviews.reviews !== undefined
 													? business.reviews.reviews.map((review, i) => {
-														return <Item review={review} key={i} />;
+														return (
+														<Item 
+														review={review}
+														 key={i}
+														 index={i}
+														 isOwner={isOwner}
+														 currentUserId={props.currentUser ? props.currentUser.id : null}
+														 responseBody={business.responseBody}
+														 handleResponseChange={this.handleResponseChange}
+														 onAddResponse={({ body, reviewId }) => props.actions.addResponse({ body, reviewId, businessId: business.id })}
+														 onUpdateResponse={({ body, reviewId }) => props.actions.updateResponse({ body, reviewId, businessId: business.id })}
+														 onDeleteResponse={({ reviewId }) => props.actions.deleteResponse({ reviewId, businessId: business.id })}
+														 loading={business.loading}
+													 	errors={business.error}	
+													/>
+														);
 													})
 													: ''
 										}
@@ -140,6 +178,7 @@ class BusinessProfile extends React.Component {
 					handleSubmit={this.handleSubmit}
 					title={business.title}
 					review={business.review}
+					rating={business.rating}
 					errors={business.error}
 				/>
 			</div>
@@ -177,6 +216,7 @@ function mapStateToProps(state) {
 function mapDispatchToProps(dispatch) {
 	return {
 		actions: bindActionCreators(BusinessProfileActions, dispatch),
+		loginAction: bindActionCreators(loginActions, dispatch)
 	};
 }
 export default connect(mapStateToProps, mapDispatchToProps)(BusinessProfile);

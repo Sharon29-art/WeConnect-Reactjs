@@ -12,6 +12,8 @@ import PrivateRoute from './Components/Auth/PrivateRoute';
 import ForgotPassword from './Components/containerComponents/ResetPassword';
 import myBusinesses from './Components/containerComponents/myBusinesses';
 import BusinessProfile from './Components/containerComponents/businessProfile';
+import MapPage from './Components/containerComponents/MapPage';
+import AnalyticsDashboard from './Components/containerComponents/AnalyticsDashboard';
 // create a router
 const router = (
 	<div>
@@ -25,6 +27,8 @@ const router = (
 				<PrivateRoute exact path="/profile/admin" component={ChangePass} />
 				<Route exact path="/forgotpass" component={ForgotPassword} />
 				<PrivateRoute exact path="/admin/my-businesses" component={myBusinesses} />
+				<Route path="/map" component={MapPage} />
+				<PrivateRoute exact path="/business/dashboard/:id" component={AnalyticsDashboard} />
 			</Switch>
 		</Router>
 		<ToastContainer />
